@@ -11,6 +11,7 @@
   var M = PotatoGame.MUTATIONS;
   var A = PotatoGame.ACHIEVEMENTS;
   var fmt = PotatoGame.fmt;
+  var fmtFull = PotatoGame.fmtFull;
   var art = PotatoArt.svg;
 
   window.GAME = G;
@@ -164,7 +165,7 @@
   /* ============================== rendering ============================ */
 
   function renderTopbar() {
-    el.count.textContent = fmt(Math.floor(G.state.potatoes));
+    el.count.textContent = fmtFull(G.state.potatoes);
     el.ppc.textContent = fmt(G.ppc()) + ' per click';
     el.pps.textContent = fmt(G.pps()) + ' per second';
     el.achCount.textContent = G.achievementCount() + '/' + A.length;

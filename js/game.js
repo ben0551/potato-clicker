@@ -131,6 +131,19 @@
                 'Dc', 'UD', 'DD', 'TD', 'QaD', 'QiD', 'SxD', 'SpD', 'OcD',
                 'NoD', 'Vg'];
 
+  // The headline counter shows full grouped digits (as in the spec's
+  // "🥔 15,482,219" example) and only abbreviates once the number gets absurd.
+  function fmtFull(n) {
+    if (n === null || n === undefined || isNaN(n)) return '0';
+    if (n < 0) return '-' + fmtFull(-n);
+    if (n < 1e12) {
+      if (Number.isInteger(n)) return n.toLocaleString('en-US');
+      if (n < 1000) return n < 10 ? n.toFixed(2) : n.toFixed(1);
+      return Math.floor(n).toLocaleString('en-US');
+    }
+    return fmt(n);
+  }
+
   function fmt(n) {
     if (n === null || n === undefined || isNaN(n)) return '0';
     if (n < 0) return '-' + fmt(-n);
@@ -752,6 +765,7 @@
     ACHIEVEMENTS: ACHIEVEMENTS,
     CONFIG: CONFIG,
     fmt: fmt,
+    fmtFull: fmtFull,
     roundSig: roundSig,
     SAVE_KEY: SAVE_KEY
   };
