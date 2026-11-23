@@ -319,6 +319,16 @@ button:disabled { opacity: 0.42; cursor: not-allowed; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Narrow screens have no room for one line of flavour text — wrap instead of
+   truncating, so the jokes survive. */
+@media (max-width: 860px) {
+  .row .desc {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.35;
+  }
+}
 .row .meta {
   font-size: 11px;
   color: var(--muted);
