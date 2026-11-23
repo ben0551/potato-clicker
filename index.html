@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#1b1a22">
+<title>Potato Clicker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M100 22 C132 18 162 38 170 72 C178 106 168 146 138 166 C108 186 66 180 46 150 C26 120 30 76 54 48 C68 32 82 24 100 22 Z' fill='%23b08a56'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="bg" aria-hidden="true"></div>
+
+<header id="topbar">
+  <div id="counter">
+    <span class="potato-ico" aria-hidden="true">🥔</span>
+    <span id="potato-count">0</span>
+  </div>
+  <div id="rates">
+    <span id="ppc" title="Potatoes per click">1 per click</span>
+    <span class="dot">·</span>
+    <span id="pps" title="Potatoes per second">0 per second</span>
+  </div>
+  <div class="top-actions">
+    <button id="achievements-btn" class="icon-btn" title="Achievements">
+      <span aria-hidden="true">🏆</span><span id="ach-count">0/0</span>
+    </button>
+    <button id="settings-btn" class="icon-btn" title="Settings">
+      <span aria-hidden="true">⚙️</span>
+    </button>
+  </div>
+</header>
+
+<main id="layout">
+
+  <section id="left">
+    <div id="mutation-name">Ordinary Potato</div>
+    <div id="potato-stage">
+      <div id="potato" role="button" tabindex="0" aria-label="Click the potato"></div>
+      <div id="floats" aria-hidden="true"></div>
+    </div>
+    <div id="rebirth-pips" title="Rebirths"></div>
+  </section>
+
+  <section id="right">
+    <nav id="tabs" role="tablist">
+      <button class="tab active" data-tab="harvesters" role="tab">Harvesters</button>
+      <button class="tab" data-tab="upgrades" role="tab">Potato Upgrades</button>
+      <button class="tab" data-tab="rebirth" role="tab">Rebirth</button>
+    </nav>
+
+    <div id="buy-qty" role="group" aria-label="Buy quantity">
+      <span class="qty-label">Buy</span>
+      <button class="qty active" data-qty="1">1</button>
+      <button class="qty" data-qty="10">10</button>
+      <button class="qty" data-qty="max">Max</button>
+    </div>
+
+    <div id="tab-harvesters" class="tab-panel active" role="tabpanel"></div>
+    <div id="tab-upgrades" class="tab-panel" role="tabpanel"></div>
+    <div id="tab-rebirth" class="tab-panel" role="tabpanel"></div>
+
+    <div id="save-status">Saved</div>
+  </section>
+
+</main>
+
+<div id="toasts" aria-live="polite"></div>
+<div id="modal-root"></div>
+
+<script src="js/game.js"></script>
+<script src="js/art.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

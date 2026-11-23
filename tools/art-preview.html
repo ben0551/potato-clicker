@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><style>
+body{background:#14131a;color:#f2eef5;font-family:system-ui;padding:10px;margin:0}
+h1{font-size:15px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cell{background:#26252f;border-radius:8px;padding:4px;text-align:center;font-size:9px}
+.cell svg{width:100%;height:auto;display:block}
+</style></head><body>
+<h1>Potato Clicker — mutation art preview</h1>
+<div class="grid" id="g"></div>
+<script src="../js/art.js"></script>
+<script>
+// game.js is not needed for art; the mutation list lives there, so embed the names.
+var NAMES = ['Ordinary','Frozen','Magma','Golden','Diamond','Crystal','Rainbow','Mythic','Storm','Void','Celestial','Quantum','Ancient','Arcane','Galaxy','Time','Chaos','Potato Prime','Transcendent','Reality','Singularity','Multiverse','Divine','Potato.exe','Supreme','The Potato','Beyond','Absolute','Ultra','Omega','Hyper','Cosmic Spud','Universal','Potato Deity','Infinite','Final','Almost Kawaii','Kawaii'];
+var ARTS = ['plain','frost','magma','gold','diamond','crystal','rainbow','mythic','storm','void','celestial','quantum','ancient','arcane','galaxy','time','chaos','prime','transcendent','reality','singularity','multiverse','divine','exe','supreme','the','beyond','absolute','ultra','omega','hyper','cosmic','universal','deity','infinite','final','almost','kawaii'];
+for (var i = 0; i < 38; i++) {
+  var d = document.createElement('div');
+  d.className = 'cell';
+  d.innerHTML = PotatoArt.svg(i, ARTS[i]) + '<div>' + (i+1) + '. ' + NAMES[i] + '</div>';
+  g.appendChild(d);
+}
+</script>
+</body></html>
