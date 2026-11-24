@@ -21,7 +21,6 @@
 
   var buyQty = '1';
   var activeTab = 'harvesters';
-  var structVersion = -1;     // rebuilt when rebirths / unlocks change
   var lastPotatoHtml = '';
   var saveTimer = 0;
   var renderTimer = 0;
@@ -345,9 +344,13 @@
 
   /* --------------------------- rebirth --------------------------- */
 
-  function renderRebirth() {
-    var p = G.rebirthProgress();
-    if (!p) {
+  // The panel is built ONCE and then updated in place. Rebuilding the innerHTML
+  // every frame destroyed the <button> node ~10x/second, which killed :hover and
+  // swallowed clicks (pointerdown and pointerup landed on different nodes).
+  var rbRefs = null;
+
+  function buildRebirthPanel(finished) {
+    if (finished) {
       el.tabRebirth.innerHTML =
         '<div class="rebirth-box">' +
         '<h2>Five rebirths complete</h2>' +
@@ -355,41 +358,87 @@
         'universe is exactly as it should be: potato.</p>' +
         '<p>Keep playing for as long as you like. There is nowhere left to go, ' +
         'and that is the point.</p></div>';
+      rbRefs = null;
       return;
     }
-    var unlocked = G.unlockedHarvesterCount();
-    var html = '<div class="rebirth-box">' +
-      '<h2>Rebirth ' + p.rebirth + ' of ' + PotatoGame.CONFIG.maxRebirths + '</h2>' +
+    el.tabRebirth.innerHTML =
+      '<div class="rebirth-box">' +
+      '<h2 class="rb-title"></h2>' +
       '<p>Rebirth resets your potatoes, harvesters and mutations. You keep your ' +
       'rebirth count, your harvester caps grow by 25%, and a new tier of ' +
       'mutations becomes available.</p>' +
-      '<div class="req"><span>Final mutation: ' + p.mutationName + '</span>' +
-        '<span class="' + (p.mutationOwned ? 'ok' : 'no') + '">' +
-        (p.mutationOwned ? '✓' : '✗') + '</span></div>' +
-      '<div class="req"><span>Max all unlocked harvesters (' + unlocked + ')</span>' +
-        '<span class="' + (p.maxedAll ? 'ok' : 'no') + '">' +
-        (p.maxedAll ? '✓' : '✗') + '</span></div>' +
-      '<div class="req"><span>Hold ' + fmt(p.needPotatoes) + ' potatoes</span>' +
-        '<span class="' + (G.state.potatoes >= p.needPotatoes ? 'ok' : 'no') + '">' +
-        fmt(G.state.potatoes) + ' / ' + fmt(p.needPotatoes) + '</span></div>' +
-      '<button class="rebirth-btn" type="button" ' +
-        (G.canRebirth() ? '' : 'disabled') + '>Rebirth</button>' +
-      '<p style="margin-top:10px">Unlocks: ' +
-        M[PotatoGame.CONFIG.tierEnd[p.rebirth - 1] + 1].name + ' tier mutations, ' +
-        'and ' + Math.min(2, H.length - G.unlockedHarvesterCount()) + ' more harvester types.</p>' +
+      '<div class="req req-mut"><span class="req-label"></span>' +
+        '<span class="req-val"></span></div>' +
+      '<div class="req req-harv"><span class="req-label"></span>' +
+        '<span class="req-val"></span></div>' +
+      '<div class="req req-pot"><span class="req-label"></span>' +
+        '<span class="req-val"></span></div>' +
+      '<button class="rebirth-btn" type="button">Rebirth</button>' +
+      '<p class="rb-unlocks" style="margin-top:10px"></p>' +
       '</div>';
-    el.tabRebirth.innerHTML = html;
-    var btn = el.tabRebirth.querySelector('.rebirth-btn');
-    if (btn) {
-      btn.addEventListener('click', function () {
-        if (G.rebirth()) {
-          Audio.rebirth();
-          structVersion = -1;
-          toast('Rebirth ' + G.state.rebirths, 'Your caps grew. New mutations await.', 'ach');
-          buildAll();
-        }
-      });
+    rbRefs = {
+      title: el.tabRebirth.querySelector('.rb-title'),
+      mutLabel: el.tabRebirth.querySelector('.req-mut .req-label'),
+      mutVal: el.tabRebirth.querySelector('.req-mut .req-val'),
+      harvLabel: el.tabRebirth.querySelector('.req-harv .req-label'),
+      harvVal: el.tabRebirth.querySelector('.req-harv .req-val'),
+      potLabel: el.tabRebirth.querySelector('.req-pot .req-label'),
+      potVal: el.tabRebirth.querySelector('.req-pot .req-val'),
+      btn: el.tabRebirth.querySelector('.rebirth-btn'),
+      unlocks: el.tabRebirth.querySelector('.rb-unlocks')
+    };
+    rbRefs.btn.addEventListener('click', doRebirth);
+  }
+
+  function setReq(refs, label, ok, value) {
+    refs.label.textContent = label;
+    refs.val.textContent = value;
+    refs.val.className = 'req-val ' + (ok ? 'ok' : 'no');
+  }
+
+  function renderRebirth() {
+    var p = G.rebirthProgress();
+    if (!p) {
+      if (rbRefs) buildRebirthPanel(true);
+      return;
     }
+    if (!rbRefs) buildRebirthPanel(false);
+
+    var unlocked = G.unlockedHarvesterCount();
+    rbRefs.title.textContent =
+      'Rebirth ' + p.rebirth + ' of ' + PotatoGame.CONFIG.maxRebirths;
+
+    setReq(
+      { label: rbRefs.mutLabel, val: rbRefs.mutVal },
+      'Final mutation: ' + p.mutationName, p.mutationOwned,
+      p.mutationOwned ? '✓' : '✗'
+    );
+    setReq(
+      { label: rbRefs.harvLabel, val: rbRefs.harvVal },
+      'Max all unlocked harvesters (' + p.maxed + '/' + unlocked + ')',
+      p.maxedAll, p.maxedAll ? '✓' : '✗'
+    );
+    setReq(
+      { label: rbRefs.potLabel, val: rbRefs.potVal },
+      'Hold ' + fmt(p.needPotatoes) + ' potatoes',
+      G.state.potatoes >= p.needPotatoes,
+      fmt(G.state.potatoes) + ' / ' + fmt(p.needPotatoes)
+    );
+
+    rbRefs.btn.disabled = !G.canRebirth();
+    rbRefs.unlocks.textContent =
+      'Unlocks: ' + M[PotatoGame.CONFIG.tierEnd[p.rebirth - 1] + 1].name +
+      ' tier mutations, and ' +
+      Math.min(2, H.length - G.unlockedHarvesterCount()) +
+      ' more harvester types.';
+  }
+
+  function doRebirth() {
+    if (!G.rebirth()) return;
+    Audio.rebirth();
+    toast('Rebirth ' + G.state.rebirths,
+      'Your caps grew. New mutations await.', 'ach');
+    buildAll();
   }
 
   /* ============================ modal system =========================== */
@@ -472,8 +521,7 @@
       } else if (act === 'reset') {
         if (confirm('Hard reset wipes your entire save. Are you sure?')) {
           G.hardReset();
-          structVersion = -1;
-          buildAll();
+              buildAll();
           applyTheme();
           closeModal();
           toast('Reset', 'A fresh potato begins.');
@@ -535,8 +583,7 @@
       if (!(e.target.dataset && e.target.dataset.act === 'do')) return;
       var val = backdrop.querySelector('textarea').value.trim();
       if (G.importSave(val)) {
-        structVersion = -1;
-        buildAll();
+          buildAll();
         applyTheme();
         closeModal();
         toast('Imported', 'Save loaded.');
@@ -609,8 +656,7 @@
       } else if (act === 'reset') {
         if (confirm('Reset everything? This wipes your save completely.')) {
           G.hardReset();
-          structVersion = -1;
-          buildAll();
+              buildAll();
           applyTheme();
           closeModal();
         }
